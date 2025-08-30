@@ -1,0 +1,2 @@
+class PredictorService:
+    def

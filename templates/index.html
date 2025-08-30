@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新闻分类摘要</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #8b5cf6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --border-radius: 12px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', '微软雅黑', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+            margin: 1rem 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        #user-input {
+            width: 100%;
+            padding: 1.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            margin: 1rem 0;
+            resize: vertical;
+            transition: var(--transition);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 180px;
+        }
+
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        #submit-button {
+            margin-top: 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.9rem 2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        #submit-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        #submit-button:active {
+            transform: translateY(0);
+        }
+
+        #submit-button:disabled {
+            background: var(--border-color);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .button-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .button-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: button-loading-spinner 0.8s ease infinite;
+        }
+
+        @keyframes button-loading-spinner {
+            from {
+                transform: rotate(0turn);
+            }
+
+            to {
+                transform: rotate(1turn);
+            }
+        }
+
+        .result-container {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .result-container.visible {
+            opacity: 1;
+            height: auto;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            margin-right: 0.75rem;
+            width: 24px;
+            height: 24px;
+            color: var(--primary-color);
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .category-tag {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .summary-content {
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            #user-input {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>新闻分类摘要</h1>
+            <p>输入新闻文本，获取分类和摘要结果</p>
+        </div>
+
+        <textarea id="user-input" rows="6" placeholder="请输入新闻文本内容（建议长度100-500字）"></textarea>
+
+        <button id="submit-button">分析文本</button>
+
+        <div class="result-container" id="result-container">
+            <div class="result-header">
+                <svg class="result-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <div class="result-title">分析结果</div>
+            </div>
+            <div id="category" class="category-tag">科技</div>
+            <div id="summary" class="summary-content">这里是新闻摘要内容，分析后将显示在这里。</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2023 新闻摘要工具</p>
+    </div>
+
+    <script>
+        const elements = {
+            userInput: document.getElementById('user-input'),
+            submitButton: document.getElementById('submit-button'),
+            resultContainer: document.getElementById('result-container'),
+            category: document.getElementById('category'),
+            summary: document.getElementById('summary')
+        };
+
+        elements.submitButton.addEventListener('click', async () => {
+            const content = elements.userInput.value.trim();
+
+            if (!content) {
+                showError('请输入需要分析的文本内容');
+                return;
+            }
+
+            if (content.length < 30) {
+                showError('文本内容过短，请至少输入30个字符');
+                return;
+            }
+
+            setLoadingState(true);
+
+            try {
+                // 模拟API请求，实际应用中替换为真实API
+                const response = await fetch('/news_classify_summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: content })
+                });
+                const res = await response.json();
+
+                // 模拟API响应
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const mockResponse = {
+                    category: getRandomCategory(),
+                    summary: generateMockSummary(content)
+                };
+
+                showResult(mockResponse.category, mockResponse.summary);
+            } catch (error) {
+                showError('分析失败，请稍后重试');
+                console.error('Error:', error);
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        function setLoadingState(isLoading) {
+            elements.submitButton.disabled = isLoading;
+
+            if (isLoading) {
+                elements.submitButton.classList.add('button-loading');
+                elements.submitButton.textContent = '分析中...';
+            } else {
+                elements.submitButton.classList.remove('button-loading');
+                elements.submitButton.textContent = '分析文本';
+            }
+        }
+
+        function showResult(category, summary) {
+            elements.category.textContent = category;
+            elements.summary.textContent = summary;
+            elements.resultContainer.classList.add('visible');
+        }
+
+        function showError(message) {
+            elements.category.textContent = '错误';
+            elements.summary.textContent = message;
+            elements.resultContainer.classList.add('visible');
+            elements.resultContainer.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+            elements.category.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+            elements.category.style.color = 'var(--error-color)';
+        }
+
+        // 辅助函数 - 模拟数据
+        function getRandomCategory() {
+            const categories = ['科技', '财经', '体育', '娱乐', '健康', '教育', '汽车', '旅游'];
+            return categories[Math.floor(Math.random() * categories.length)];
+        }
+
+        function generateMockSummary(content) {
+            // 简单模拟生成摘要
+            const sentences = content.split(/[.!?。！？]/).filter(s => s.length > 5);
+            if (sentences.length > 0) {
+                return sentences[0].substring(0, 120) + '...';
+            }
+            return '无法生成摘要，请提供更长的文本内容。';
+        }
+    </script>
+</body>
+
+</html>
