@@ -4,13 +4,8 @@
       "filename": "data-00000-of-00001.arrow"
     }
   ],
-  "_fingerprint": "8f2bd73cfa62267b",
-  "_format_columns": [
-    "attention_mask",
-    "input_ids",
-    "labels",
-    "token_type_ids"
-  ],
+  "_fingerprint": "81966a7e59f89633",
+  "_format_columns": null,
   "_format_kwargs": {},
   "_format_type": null,
   "_output_all_columns": false,

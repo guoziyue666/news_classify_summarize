@@ -18,7 +18,7 @@ class TrainingConfig:
     epochs: int = 10
     output_dir: str = './checkpoint'
     log_dir: str = './logs'
-    batch_size: int = 16
+    batch_size: int = 4
     learning_rate: float = 5e-5
     save_steps: int = 500
     early_stop_patience: int = 5
@@ -155,6 +155,7 @@ class Trainer:
             self.early_stop_best_score = score
             self.early_stop_counter = 0
             self.model.save_pretrained(str(Path(self.training_config.output_dir) / 'classify' /'best'))
+            print('最佳模型保存成功！')
             return False
         else:
             self.early_stop_counter += 1
@@ -173,6 +174,7 @@ class Trainer:
             'step': self.step
         }
         torch.save(checkpoint, str(Path(self.training_config.output_dir) / 'classify' / 'last' / 'checkpoint.pt'))
+        print('模型保存成功！')
 
     def _load_checkpoint(self):
         checkpoint_dir = Path(self.training_config.output_dir) / 'classify' / 'last' / 'checkpoint.pt'
