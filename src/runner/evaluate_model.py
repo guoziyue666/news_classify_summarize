@@ -63,6 +63,7 @@ def evaluate_classify():
     print(f'Test precision: {precision}')
     print(f'Test recall: {recall}')
     print(f'Test f1-score: {f1}')
+    # print(report)
     print(f'Test support: {report['macro avg']['support']}')
     print(f'Test auc: {auc}')
 
@@ -78,47 +79,63 @@ def evaluate_summary():
     summary_test_dataloader = get_summarize_dataloader(tokenizer, 'test')
     summary_predictor = SummaryPredictor(model, tokenizer, device)
 
-    text_list, refers_list, preds_list = [], [], []
     model.eval()
     total_loss = 0
+    batch_count = 0
+    
+    # 分批处理ROUGE评估以减少内存占用
+    all_rouge_scores = []
+    
     for inputs in tqdm(summary_test_dataloader, desc='[Evaluation]'):
         inputs = {key: value.to(device) for key, value in inputs.items()}
         # 获取输入文本
         texts = [tokenizer.decode([token_id for token_id in input_id if token_id >= 0], skip_special_tokens=True) for
                  input_id in inputs['input_ids']]
-        text = [input.replace(' ', '') for input in texts]
-        text_list.extend(text)
+        text_list = [input.replace(' ', '') for input in texts]
+        
         # 获取参考摘要
         refers = [tokenizer.decode([token_id for token_id in refer if token_id >= 0], skip_special_tokens=True) for
                   refer in inputs['labels']]
-        refers = [refer.replace(' ', '') for refer in refers]
-        refers_list.extend(refers)
+        refers_list = [refer.replace(' ', '') for refer in refers]
+        
         # 前向传播
         outputs = model(**inputs)
         loss = outputs.loss
         total_loss += loss.item()
-        # logits = outputs.logits
-        # 预测摘要
-        # preds = torch.argmax(logits, dim=-1)
-        # preds = [tokenizer.decode(pred, skip_special_tokens=True) for pred in preds]
-        # print(type(preds))
+        batch_count += 1
 
-    print(f'Test loss: {total_loss / len(summary_test_dataloader)}')
-    # 获取预测摘要
-    preds = summary_predictor.predict(text_list)
-    preds = [pred.replace(' ', '') for pred in preds]
-    preds_list.extend(preds)
+        # 获取预测摘要
+        preds_list = summary_predictor.predict(text_list)
+        preds_list = [pred.replace(' ', '') for pred in preds_list]
 
-    rouge_scores = load(str(config.ROUGE_DIR)).compute(
-        references=refers_list,
-        predictions=preds_list,
-        tokenizer=jieba.lcut
-    )
+        # 对当前批次计算ROUGE分数
+        batch_rouge_scores = load(str(config.ROUGE_DIR)).compute(
+            references=refers_list,
+            predictions=preds_list,
+            tokenizer=jieba.lcut
+        )
+        
+        all_rouge_scores.append(batch_rouge_scores)
+        
+        # 清理GPU内存
+        del inputs, outputs
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
-    for k, v in rouge_scores.items():
-        print(f'Test {k}: {v}')
+    print(f'Test loss: {total_loss / batch_count}')
+    
+    # 计算平均ROUGE分数
+    avg_rouge_scores = {}
+    num_batches = len(all_rouge_scores)
+    
+    if num_batches > 0:
+        for key in all_rouge_scores[0].keys():
+            avg_rouge_scores[key] = sum(score[key] for score in all_rouge_scores) / num_batches
+            
+        for k, v in avg_rouge_scores.items():
+            print(f'Test {k}: {v}')
 
 
 if __name__ == '__main__':
-    evaluate_classify()
-    # evaluate_summary()
+    # evaluate_classify()
+    evaluate_summary()

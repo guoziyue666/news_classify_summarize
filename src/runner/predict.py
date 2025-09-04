@@ -1,9 +1,6 @@
 import warnings
-import logging
 
 warnings.filterwarnings("ignore")
-# 禁用transformers库的日志警告
-logging.getLogger("transformers").setLevel(logging.ERROR)
 
 import torch
 import torch.nn.functional as F
